@@ -1,0 +1,100 @@
+Part 1: If the payment is for a physical product, generate a packing slip for shipping.
+I have created my test case as given below.
+[TestMethod]
+public void PaymentForAPhysicalProductGeneratesAPackagingSlipForShippingTest()
+{
+    new Story("payment is for a physical product, generate a packing slip for shipping")
+    .InOrderTo("Ship products a packaging slip should be generated")
+    .AsA("User")
+    .IWant("Packaging slip for shipping my products")
+    .WithScenario("Payment for physical product")
+    .Given(ProductIsReadyForPayment)
+    .When(PaymentIsDoneForProduct)
+    .Then(ShouldAlsoGenerateAShippingSlipForTheProduct)
+    .ExecuteWithReport(MethodBase.GetCurrentMethod());
+}
+Now to implement the Given, When, Then scenarios, I’ve use refactoring to generate the methods and variables. My test methods look like.
+private void ShouldAlsoGenerateAShippingSlipForTheProduct()
+{
+    _payment.CompletePayment(PaymentAmount);
+    _shippingServiceMock.Verify((x) => x.GenerateShippingSlipForAddress(_physicalProduct.GetShippingAddress()));
+}
+
+private void PaymentIsDoneForProduct()
+{
+    _payment = new Payment(_physicalProduct, ShippingAddress);
+    _shippingServiceMock = new Mock<IShippingSlipService>();
+
+    _payment.SetShippingService(_shippingServiceMock.Object);
+}
+
+private void ProductIsReadyForPayment()
+{
+    _physicalProduct = new Product("Blackberry Storm");
+    var physicalProduct = _physicalProduct;
+    const string shippingAddress = "iSense Bangalore";
+    physicalProduct.SetShippingAddress(shippingAddress);
+}
+
+I have mocked the IShippingSlipService and set the expectations on the GenerateShippingSlipForAddress method on the service.
+Code for the implementation
+public class Product
+{
+    private string _shippingAddress;
+    private string _name;
+    private readonly string _productCode;
+
+    public Product(string name)
+    {
+        this._name = name;
+        _productCode = Guid.NewGuid().ToString("N");
+    }
+
+    public void SetShippingAddress(string shippingAddress)
+    {
+        this._shippingAddress = shippingAddress;
+    }
+
+    public string GetShippingAddress()
+    {
+        return _shippingAddress;
+    }
+
+    public string GetProductCode()
+    {
+        return _productCode;
+    }
+}
+
+public class Payment
+{
+    private readonly Product _physicalProduct;
+    private decimal _amount;
+    private IShippingSlipService _shippingSlipService;
+    private string _shippingAddress;
+
+    public Payment(Product physicalProduct, string shippingAddress)
+    {
+        if (physicalProduct == null) throw new ArgumentNullException("physicalProduct");
+        if (shippingAddress == null) throw new ArgumentNullException("shippingAddress");
+
+        this._physicalProduct = physicalProduct;
+        this._shippingAddress = shippingAddress;
+    }
+
+    public virtual void CompletePayment(decimal amount)
+    {
+        _amount = amount;
+        if (_physicalProduct != null) _shippingSlipService.GenerateShippingSlipForAddress(_physicalProduct.GetShippingAddress());
+    }
+
+    public void SetShippingService(IShippingSlipService shippingSlipService)
+    {
+        _shippingSlipService = shippingSlipService;
+    }
+}
+
+public interface IShippingSlipService
+{
+    void GenerateShippingSlipForAddress(string shippingAddress);
+}
