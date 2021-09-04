@@ -1,6 +1,6 @@
-Part 1: If the payment is for a physical product, generate a packing slip for shipping.
-I have created my test case as given below.
-[TestMethod]
+#Part 1: If the payment is for a physical product, generate a packing slip for shipping.
+#I have created my test case as given below.
+#[TestMethod]
 public void PaymentForAPhysicalProductGeneratesAPackagingSlipForShippingTest()
 {
     new Story("payment is for a physical product, generate a packing slip for shipping")
@@ -36,8 +36,8 @@ private void ProductIsReadyForPayment()
     physicalProduct.SetShippingAddress(shippingAddress);
 }
 
-I have mocked the IShippingSlipService and set the expectations on the GenerateShippingSlipForAddress method on the service.
-Code for the implementation
+#I have mocked the IShippingSlipService and set the expectations on the GenerateShippingSlipForAddress method on the service.
+#Code for the implementation
 public class Product
 {
     private string _shippingAddress;
